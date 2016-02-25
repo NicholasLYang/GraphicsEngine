@@ -1,0 +1,192 @@
+; CIDER 0.11.0snapshot (package: 20160202.14) (Java 1.8.0_25, Clojure 1.7.0, nREPL 0.2.12)
+ppm.core> (test1)
+;;; output cleared
+ppm.core> (test1)
+;;; output cleared
+ppm.core> (test1)
+Wrote to file 1
+nil
+WARNING: test already refers to: #'clojure.core/test in namespace: ppm.core, being replaced by: #'ppm.core/test
+ppm.core> (test1)
+ArityException Wrong number of args (0) passed to: core/test1  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> (test1 10 10)
+x coord:  10 y coord:  10
+nil
+ppm.core> (def a (int-array 5 5) 4)
+CompilerException java.lang.RuntimeException: Too many arguments to def, compiling:(*cider-repl ppm*:15:10) 
+ppm.core> (int-array 5 4)
+#object["[I" 0x36c2815 "[I@36c2815"]
+ppm.core> (def n (make-array Integer/TYPE 2 2))
+#'ppm.core/n
+ppm.core> (nget 0)
+CompilerException java.lang.RuntimeException: Unable to resolve symbol: nget in this context, compiling:(*cider-repl ppm*:21:10) 
+ppm.core> (aget 0)
+ArityException Wrong number of args (1) passed to: core/aget  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> (aget 0 0)
+IllegalArgumentException No matching method found: aget  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> n
+#object["[[I" 0x39bfefb "[[I@39bfefb"]
+ppm.core> (get n 0 1)
+#object["[I" 0x397d6106 "[I@397d6106"]
+ppm.core> (get n 0)
+#object["[I" 0x397d6106 "[I@397d6106"]
+ppm.core> (get [1 2 3] 0)
+1
+ppm.core> (get [ [1 2 3] [4 5 6]] 0 1)
+[1 2 3]
+ppm.core> (def n (to-array-2d [[1 2 3] [4 5 6]]))
+#'ppm.core/n
+ppm.core> (aget n 0 0 )
+1
+ppm.core> (aget n 0 1)
+2
+ppm.core> (alength a)
+CompilerException java.lang.RuntimeException: Unable to resolve symbol: a in this context, compiling:(*cider-repl ppm*:43:10) 
+ppm.core> (alength n)
+2
+ppm.core> (alength (get n 1))
+3
+ppm.core> (createPPM [[[255 0 0] [255 0 0] [255 0 0]] [[0 255 0] [0 255 0] [0 255 0]]])
+ArityException Wrong number of args (1) passed to: core/createPPM  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> 
+IllegalArgumentException No matching method found: alength  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> (int-array [[[255 0 0] [255 0 0] [255 0 0]] [[0 255 0] [0 255 0] [0 255 0]]])
+ClassCastException clojure.lang.PersistentVector cannot be cast to java.lang.Number  clojure.lang.Numbers.int_array (Numbers.java:1194)
+ppm.core> (int-array [[[1 2 3] [4 5 6]] [[7 8 9] [10 11 12]] [[13 14 15] [16 17 18]]])
+ClassCastException clojure.lang.PersistentVector cannot be cast to java.lang.Number  clojure.lang.Numbers.int_array (Numbers.java:1194)
+ppm.core> 
+#object["[[I" 0x470e69f9 "[[I@470e69f9"]
+ppm.core> (pprint (make-array Integer/TYPE 10 4))
+[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+ [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+nil
+ppm.core> (def a (make-array Integer/TYPE 10 4))
+#'ppm.core/a
+ppm.core> (doall (map #(doall (map println %)) array))
+
+CompilerException java.lang.RuntimeException: Unable to resolve symbol: array in this context, compiling:(*cider-repl ppm*:65:17) 
+ppm.core> (def array (take 3 (partition 3 (partition 3 (iterate inc 1)))))
+(doall (map #(doall (map println %)) array))
+#'ppm.core/array(1 2 3)
+(4 5 6)
+(7 8 9)
+(10 11 12)
+(13 14 15)
+(16 17 18)
+(19 20 21)
+(22 23 24)
+(25 26 27)
+((nil nil nil) (nil nil nil) (nil nil nil))
+ppm.core> (to-array-2d [[(1 2 3) (4 5 6)] [(7 8 9) (10 11 12)]])
+ClassCastException java.lang.Long cannot be cast to clojure.lang.IFn  ppm.core/eval19438 (form-init1876197467782585984.clj:80)
+ppm.core> (to-array-2d [(1 2 3) (4 5 6)]
+                       )
+ClassCastException java.lang.Long cannot be cast to clojure.lang.IFn  ppm.core/eval19440 (form-init1876197467782585984.clj:82)
+ppm.core> (def input (to-array-2d [[1 2 3] [4 5 6]]))
+#'ppm.core/input
+ppm.core> (def input (to-array-2d [["255 0 0" "255 0 0" "255 0 0"] ["0 255 0" "0 255 0" "0 255 0"]]))
+#'ppm.core/input
+ppm.core> (createPPM input "test1")
+IllegalArgumentException No value supplied for key: .ppm  clojure.lang.PersistentHashMap.create (PersistentHashMap.java:77)
+ppm.core> (str "abc" "a")
+"abca"
+CompilerException java.lang.IllegalStateException: file already refers to: #'clojure.java.io/file in namespace: ppm.core, compiling:(/Users/nicholas/Dropbox/Nicholas/School/Homework 2015-2016/ComputerGraphics/ppm/src/ppm/core.clj:14:3) 
+ppm.core> (createPPM input "test1")
+IllegalArgumentException No value supplied for key: .ppm  clojure.lang.PersistentHashMap.create (PersistentHashMap.java:77)
+ppm.core> (def filename "test1")
+#'ppm.core/filename
+ppm.core> 
+"test1.ppm"
+ppm.core> 
+CompilerException java.lang.IllegalStateException: file already refers to: #'clojure.java.io/file in namespace: ppm.core, compiling:(*cider-repl ppm*:100:10) 
+ppm.core> (def ppmFile (str filename ".ppm"))
+#'ppm.core/ppmFile
+ppm.core> (with-open [wrtr (writer ppmFile)]
+            (.write wrtr "P3" 1 1 " 255"))
+IllegalArgumentException No matching method found: write for class java.io.BufferedWriter  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:53)
+ppm.core> (defn write-file []
+  (with-open [w (clojure.java.io/writer  "f:/w.txt" :append true)]
+    (.write w (str "hello" "world"))))
+#'ppm.core/write-file
+ppm.core> (write-file)
+FileNotFoundException f:/w.txt (No such file or directory)  java.io.FileOutputStream.open (FileOutputStream.java:-2)
+ppm.core> (defn write-file []
+  (with-open [w (clojure.java.io/writer  "w.txt")]
+    (.write w (str "hello" "world"))))
+#'ppm.core/write-file
+ppm.core> (write-file)
+nil
+ppm.core> (createPPM input ppmFile)
+IllegalArgumentException No matching method found: write for class java.io.BufferedWriter  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:53)
+ppm.core> (createPPM input ppmFile)
+IllegalArgumentException No matching method found: aget  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> 
+nil
+ppm.core> 
+nil
+ppm.core> 
+nil
+ppm.core> 
+nil
+ppm.core> 
+nil
+ppm.core> (spit "test1.ppm" "P3 1 1 255")
+nil
+ppm.core> (spit "test1.ppm" "255 0 0" :append true)
+nil
+ppm.core> (createPPM input ppmFile)
+IllegalArgumentException No matching method found: aget  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> (createPPM (to-array-2d [["255 0 0" "0 255 0" "0 0 255"] ["255 0 0" "0 255 0" "0 0 255"] ]) ppmFile)
+IllegalArgumentException No matching method found: aget  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> 
+IllegalArgumentException No matching method found: aget  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> (aget [[0 1 2] [3 4 5]] 1 2)
+IllegalArgumentException No matching method found: aget  clojure.lang.Reflector.invokeMatchingMethod (Reflector.java:80)
+ppm.core> 
+[[[0, 0], [0, 0]], [[0, 0], [0, 0]]]
+nil
+ppm.core> (def a (make-array Integer/TYPE 2 2 2))
+#'ppm.core/a
+ppm.core> (assoc a 1 5)
+ClassCastException [[[I cannot be cast to clojure.lang.Associative  clojure.lang.RT.assoc (RT.java:778)
+ppm.core> 
+ClassCastException [I cannot be cast to clojure.lang.Associative  clojure.lang.RT.assoc (RT.java:778)
+ppm.core> (assoc-in a [1 1] 5)
+ClassCastException [[I cannot be cast to clojure.lang.Associative  clojure.lang.RT.assoc (RT.java:778)
+ppm.core> (replace a [1 1] 5)
+ArityException Wrong number of args (3) passed to: core/replace  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> (update-in a [1 2 3] 5)
+ClassCastException java.lang.Long cannot be cast to clojure.lang.IFn  clojure.core/apply (core.clj:625)
+ppm.core> (def a2 (make-array Integer/TYPE 2 2))
+#'ppm.core/a2
+ppm.core> (update-in a2 [1 1] 4)
+ClassCastException java.lang.Long cannot be cast to clojure.lang.IFn  clojure.core/apply (core.clj:625)
+ppm.core> (assoc [1 2 3] 2 10)
+[1 2 10]
+ppm.core> 
+[[2 3 4] [4 5 6]]
+ppm.core> (assoc [[[1 2 3] [4 5 6]][[7 8 9] [10 11 12]]]  0 [[2 3 4] [5 6 8]])
+[[[2 3 4] [5 6 8]] [[7 8 9] [10 11 12]]]
+ppm.core> a
+#object["[[[I" 0x2f2264c3 "[[[I@2f2264c3"]
+ppm.core> (pprint a)
+[[[0, 0], [0, 0]], [[0, 0], [0, 0]]]
+nil
+ppm.core> 
+ClassCastException   [trace missing]
+ppm.core> (get a 0)
+#object["[[I" 0x3c96622e "[[I@3c96622e"]
+ppm.core> (pprint (get a 0))
+[[0, 0], [0, 0]]
+nil
+ppm.core> 
+ArityException Wrong number of args (2) passed to: core/assoc--4142  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> 
+ArityException Wrong number of args (2) passed to: core/assoc--4142  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> (assoc a (assoc (get a 0) (assoc (get (get a 0) 0) 1) 0) 0 0)
+ArityException Wrong number of args (2) passed to: core/assoc--4142  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> (assoc a (assoc (get a 0) (assoc (get (get a 0) 0) 1) 0) 0 0)
+ArityException Wrong number of args (2) passed to: core/assoc--4142  clojure.lang.AFn.throwArity (AFn.java:429)
+ppm.core> (assoc a 0 [[1 2][3 4]])
+ClassCastException   [trace missing]
+ppm.core> 
