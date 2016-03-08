@@ -21,9 +21,9 @@
          )
 
 (defn setColor [matrix x y COLOR]
-  (m/mset! matrix x y 0 (m/select COLOR 0))
-  (m/mset! matrix x y 1 (m/select COLOR 1))
-  (m/mset! matrix x y 2 (m/select COLOR 2))
+  (m/mset! matrix x y 0 (int (m/select COLOR 0)))
+  (m/mset! matrix x y 1 (int (m/select COLOR 1)))
+  (m/mset! matrix x y 2 (int (m/select COLOR 2)))
   )
 
 (defn createMatrix [x y]
@@ -99,8 +99,8 @@
             (println x0 ", " y0))
     2    (do (setColor image y0 x0 COLOR)
              (println y0 ", " x0))
-    3   (do (setColor image y0 -x0 COLOR)
-           (println y0 ", " x0))
+    3   (do (println y0 ", " x0)
+          (setColor image y0 x0 COLOR))
     4   (do (setColor image -x0 y0 COLOR)
             (println -x0 ", " y0))
     5 (do (setColor image -x0 -y0 COLOR)
@@ -133,7 +133,8 @@
 
 
 (defn drawLine ([image COLOR  x0 y0 x1 y1]
-  "Draw a line"
+                "Draw a line"
+  (println " x0: " x0 " y0: " y0)
   (def dy (- y1 y0))
   (def dx (- x1 x0) )
   (println "dx: " dx " dy: " dy)              
@@ -162,12 +163,12 @@
         ; dx < 0, dy > 0, |dx| > dy --> Fourth octant
         (drawLine image COLOR x1 y0 x0 y1 4)
         ; dx < 0, dy > 0, |dx| < dy --> Third octant
-        (drawLine image COLOR  y0 x1 y1 x0 3)
+        (drawLine image COLOR  y1 x1 y0 x0 3)
         )
       ; dx < 0, dy < 0 --> Third quadrant
       (if (> dx dy) ; aka |dy| > |dx| 
         ; dx < 0, dy < 0, |dy| > |dx|  --> Sixth octant
-        (drawLine image COLOR y1 x1 y0 x0 6)
+        (drawLine image COLOR y0 x1 y1 x0 6)
         ; dx < 0, dy < 0, |dx| > |dy| --> Fifth octant
         (drawLine image COLOR x1 y1 x0 y0 5)
         )
@@ -178,12 +179,12 @@
    (def B (- x0 x1))
    (def d (+ (* 2 A) B))
 
-   (println "A: " A " B: " B " d: " d " octant: " octant)
+;   (println "A: " A " B: " B " d: " d " octant: " octant " x0: " x0 " y0: " y0)
    (drawHelper image COLOR A B d x0 y0 x1 y1 octant)
   ))
 
 
-(defn showImage [filename]
+(defn display [filename]
   (programs display)
   (println filename)
   (display (str filename ".ppm") ))
@@ -191,9 +192,9 @@
 (defn createImage
   []
   (def filename "image4")
-  (def image (matrix (repeat 300 (repeat 300 WHITE))))
-  (drawLine image BLACK  0 0 10 200)
-  (drawLine image BLACK 0 0 200 10)
+  (def image (matrix (repeat 300 (repeat 300 BLACK))))
+  (drawLine image WHITE  0 0 200 10)
+  (drawLine image [255 0 0] 200 10 40 290)
   (createPPM filename image)
   (showImage filename)
 
