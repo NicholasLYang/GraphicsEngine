@@ -1,7 +1,6 @@
 (ns ppm.core
   (:use clojure.java.io)
-  (:gen-class
-   :name ppm.core))
+  (:gen-class))
 
 (use '[clojure.core.matrix :as m])
 (require '[me.raynes.conch :refer [programs with-programs let-programs] :as sh])
@@ -103,14 +102,14 @@
           (setColor image y0 x0 COLOR))
     4   (do (setColor image -x0 y0 COLOR)
             (println -x0 ", " y0))
-    5 (do (setColor image -x0 -y0 COLOR)
+    5 (do (setColor image x0 y0 COLOR)
           (println -x0 ", " -y0))
-    6 (do (setColor image -y0 -x0 COLOR)
-          (println -y0 ", " -x0))
-    7   (do (setColor image -y0 x0 COLOR)
-            (println -y0 ", " x0))
-    8   (do (setColor image x0 -y0 COLOR)
-            (println x0 ", " -y0))
+    6 (do (setColor image x0 y0  COLOR)
+          (println  x0 ", " y0))
+    7   (do (setColor image  (- y1 y0) x0 COLOR)
+            (println (-y1 y0) ", " x0))
+    8   (do (setColor image x0 (- y1 y0) COLOR)
+            (println x0 ", " (-y1 y0)))
     )
 ; (println "d: " d)
   (if (or (not= x0 x1) (not= y0 y1))
@@ -131,7 +130,7 @@
 ; /  |  \
 ;/ 6 | 7 \ 
 
-
+; Essentially, I'm using the same algorithm, but just swapping/inverting the x-y values as needed
 (defn drawLine ([image COLOR  x0 y0 x1 y1]
                 "Draw a line"
   (println " x0: " x0 " y0: " y0)
@@ -163,12 +162,12 @@
         ; dx < 0, dy > 0, |dx| > dy --> Fourth octant
         (drawLine image COLOR x1 y0 x0 y1 4)
         ; dx < 0, dy > 0, |dx| < dy --> Third octant
-        (drawLine image COLOR  y1 x1 y0 x0 3)
+        (drawLine image COLOR  y0 x1 y1 x0 3)
         )
       ; dx < 0, dy < 0 --> Third quadrant
       (if (> dx dy) ; aka |dy| > |dx| 
         ; dx < 0, dy < 0, |dy| > |dx|  --> Sixth octant
-        (drawLine image COLOR y0 x1 y1 x0 6)
+        (drawLine image COLOR y1 x1 y0 x0 6)
         ; dx < 0, dy < 0, |dx| > |dy| --> Fifth octant
         (drawLine image COLOR x1 y1 x0 y0 5)
         )
@@ -179,7 +178,7 @@
    (def B (- x0 x1))
    (def d (+ (* 2 A) B))
 
-;   (println "A: " A " B: " B " d: " d " octant: " octant " x0: " x0 " y0: " y0)
+  (println "A: " A " B: " B " d: " d " octant: " octant " x0: " x0 " y0: " y0)
    (drawHelper image COLOR A B d x0 y0 x1 y1 octant)
   ))
 
@@ -192,11 +191,11 @@
 (defn createImage
   []
   (def filename "image4")
-  (def image (matrix (repeat 300 (repeat 300 BLACK))))
+  (def image (matrix (repeat 400 (repeat 400 BLACK))))
   (drawLine image WHITE  0 0 200 10)
-  (drawLine image [255 0 0] 200 10 40 290)
+  (drawLine image [255 0 255] 200 10 100 300)
   (createPPM filename image)
-  (showImage filename)
+  (display filename)
 
   )
 

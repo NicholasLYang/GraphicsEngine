@@ -15,6 +15,7 @@
                  [net.mikera/mikera-gui "0.3.1"]
                  [net.mikera/randomz "0.3.0"]
                  [me.raynes/conch "0.8.0"]
+                 [cider/cider-nrepl "0.12.0-SNAPSHOT"]
                  ]
   :main ^:skip-aot ppm.core
   :target-path "target/%s"
