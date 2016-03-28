@@ -75,14 +75,14 @@
  
 
   (case octant
-    1   (setColor image x0 y0 [x0 y0 128])
-    2      (setColor image y0 x0 [x0 y0 128])
-    3     (setColor image  (- shift y0) x0 [x0 y0 128])
-    4    (setColor image  (- shift x0)  y0 [x0 y0 128])
-    5  (setColor image x0 y0 [x0 y0 128])
-    6  (setColor image y0 x0  [x0 y0 128])
-    7    (setColor image  y0 (- shift x0) [x0 y0 128])
-    8   (setColor image x0 (- shift y0) [x0 y0 128])
+    1   (setColor image x0 y0 COLOR)
+    2      (setColor image y0 x0 COLOR)
+    3     (setColor image  (- shift y0) x0 COLOR)
+    4    (setColor image  (- shift x0)  y0 COLOR)
+    5  (setColor image x0 y0 COLOR)
+    6  (setColor image y0 x0  COLOR)
+    7    (setColor image  y0 (- shift x0) COLOR)
+    8   (setColor image x0 (- shift y0) COLOR)
 
     )
   
@@ -110,10 +110,10 @@
 ; Essentially, I'm using the same algorithm, but just swapping/inverting the x-y values as needed
 (defn drawLine ([image COLOR  x0 y0 x1 y1]
                 "Draw a line"
-  (println " x0: " x0 " y0: " y0 " x1: " x1 " y1: " y1)
+ ; (println " x0: " x0 " y0: " y0 " x1: " x1 " y1: " y1)
   (def dy (- y1 y0))
   (def dx (- x1 x0) )
-  (println "dx: " dx " dy: " dy)              
+ ; (println "dx: " dx " dy: " dy)              
   (if (>= dx 0)
     ; dx > 0
     (if (>= dy 0)
@@ -154,7 +154,7 @@
    (def A (- y1 y0))
    (def B (- x0 x1))
    (def d (+ (* 2 A) B))
-   (println "Start point: " x0 ", " y0 " End point: " x1 ", " y1 " Octant: " octant " shift: " shift)
+  ; (println "Start point: " x0 ", " y0 " End point: " x1 ", " y1 " Octant: " octant " shift: " shift)
  
    (drawHelper image COLOR A B d x0 y0 x1 y1 octant shift)
   ))
@@ -210,6 +210,7 @@
   (int (mget (select edge x y)))
   )
 (defn readEdge [edge image]
+  (print edge "\n")
   (loop [ i 0]
     (drawLine
      image
@@ -219,7 +220,7 @@
      (getEdge edge 0 (inc i))
      (getEdge edge 1 (inc i))
      )
-    (if (< (+ i 2) (m/select (shape edge) 1 ))
+    (if (< (+ i 3) (m/select (shape edge) 1 ))
         (recur (+ i 2))
       )
     )
@@ -228,36 +229,67 @@
 
 
 
-(defn h0 [t]
-  (*
-   (+ 1 (* 2 t))
-   (Math/pow (- 1 t) 2)
+
+(comment
+  p0 = initial 
+  p1 = final point
+  m0 = initial derivative, 
+  m1 = final derivative
+  args = [p0 p1 m0 m1]
+  )
+(defn hermite [args t]
+  (broadcast
+   (m/mmul
+    (matrix [ (Math/pow t 3) (Math/pow t 2) t 1 ] )
+    (matrix
+     [
+      [2 -2 1 1]
+      [-3 3 -2 -1]
+      [0 0 1 0]
+      [1 0 0 0]
+      ]
+     )
+    args) [1 3])
+  )
+
+;  args are in the form:
+ ; [P0 P1 P2 P3]
+
+(defn bezier [args t]
+  (broadcast 
+   (m/mmul
+  
+    (matrix [(Math/pow t 3) (Math/pow t 2) t 1])
+    (matrix [
+             [-1 3 -3 1]
+             [3 -6 3 0]
+             [-3 3 0 0]
+             [1 0 0 0]
+             ])
+    args
+    )
+   [1 3]
    )
   )
 
-(defn h1 [t]
-  (*
-   t
-   (Math/pow
-    (- 1 t)
-    2             )
+
+(defn addCurve
+  ([funct args freq]
+   (println funct)
+  ; Time is between 0 and 1
+   (def step (/ 1.0 freq))
+   (addCurve funct args step 0 (broadcast (funct args 0) [1 3]))
+   )
+  ( [funct args step i edge]
+   (print edge "\n")
+    (if (> (+ i step) 1)
+    (join-along 0  edge   (funct args i))
+     (addCurve funct args step (+ i step)
+                 (join-along 0 edge (funct args i) (funct args i)))
+     )
    )
   )
 
-(defn h2 [t]
-  (*
-   (Math/pow t 2)
-   (-
-    3
-    (* 2 t)
-    ))
-  )
-
-(defn h3 [t]
-  (*
-   (Math/pow t 2)
-   (- t 1))
-  )
 
 (defn displayImage [filename]
   (programs display)
@@ -268,27 +300,19 @@
   []
   (def filename "image6")
    
-   
   (createPPM
    filename
    (readEdge
-    (m/mmul
-     (translateEdge  200 200 0)
-     (rotateEdge (/ pi 4) (/ pi 12) 0)
-     (scaleEdge 0.75 0.75 0.75)
-     ;(matrix [[100 200 200 200 200 100 100 100][100 100 100 200 200 200 200 100][1 1 1 1 1 1 1 1][1 1 1 1 1 1 1 1]]))
-  (matrix [[100 100 100 200 100 100 200 100 100 100 100 200 200 400 100 400 100 400 100 400][100 100 100 100 100 200 100 200 200 100 100 100 100 400 100 400 200 400 200 400][1 100 1 1 1 1 1 1 1 100 100 1 1 300 1 300 1 300 1 300][1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]]))
-    (matrix (repeat 500 (repeat 500 BLACK)))
+    (transpose (addCurve bezier (matrix [[0 0 0] [50 100 50] [150 250 7] [100 200 10]]) 25))
+    (matrix (repeat 300 (repeat 300 DEFAULT_COLOR)))
     )
    )
+ (displayImage filename)
+  )
   
-  
- 
- 
-  (displayImage filename)
   
 
-  )
+
 
  
 (println "Initialized")
