@@ -1,14 +1,16 @@
 (ns ppm.core
   (:use clojure.java.io)
-  (:gen-class))
+ ; (:use swank.core)
+  (:gen-class)
+  (:require [clojure.string :as str]))
 
 (use '[clojure.core.matrix :as m])
-(require '[clojure.core.matrix.protocols :as prot])
+(require '[clojure.string :as str])
 (require '[me.raynes.conch :refer [programs with-programs let-programs] :as sh])
 
 
 (set-current-implementation :vectorz) 
-(def DEFAULT_COLOR [255 0 0])
+(def DEFAULT_COLOR [255 0 255])
 (def BLACK [0 0 0])
 (def WHITE [255 255 255])
 (def pi (Math/PI))
@@ -19,16 +21,18 @@
          (0, 1) (1, 1) (2, 1)
          (0, 2) (1, 2) (2, 2)"
          )
-
+                                        ; <------------------------ Matrix ------------------------>
 (defn setColor [matrix x y COLOR]
-  (m/mset! matrix x y 0 (int (m/select COLOR 0)))
-  (m/mset! matrix x y 1 (int (m/select COLOR 1)))
-  (m/mset! matrix x y 2 (int (m/select COLOR 2)))
-  )
+  (m/mset! matrix x y 0 (m/select COLOR 0))
+  (m/mset! matrix x y 1 (m/select COLOR 1))
+  (m/mset! matrix x y 2 (m/select COLOR 2))  )
 
 (defn createMatrix [x y]
   (def image  (matrix (repeat x (repeat y DEFAULT_COLOR))))
   )
+
+
+                                        ; <------------------------ PPM ------------------------>
 (defn createPPM 
 "Initializes the ppm with size"
   [filename, image]
@@ -40,40 +44,41 @@
   (def header (str "P3 " (inc x) " " (inc y) " 255 \n"))
   (spit ppmFile header)
   (loop [iterY 0]
-   
-    (loop [iterX 0]
-     
-      (loop [iterRGB 0]
-        (def a (m/select image iterX iterY iterRGB))
-        (with-open [w (clojure.java.io/writer ppmFile :append true)]
-          (.write w  (str (int a) " ")))
-        
-        (if (> 2 iterRGB)
-          (recur (inc iterRGB))
-          ))
-       
-      (if (> x iterX)
-        (recur (inc iterX))
-        (with-open [w (clojure.java.io/writer ppmFile :append true)]
-          (.write w "\n"))
+      (with-open [w (clojure.java.io/writer ppmFile :append true)]
+        (.write w (str (str/join " " (vec  (int-array (apply concat (m/slice image iterY))))) "\n")))
+      
+
+      (if (> y iterY)
+      (recur (inc iterY)))
+    )
+  )
+  
+
+(comment 
+  (loop [iterY 0]
+    
+    (loop [iterRGB 0]
+      (def a (m/select image iterX iterY iterRGB))
+      (with-open [w (clojure.java.io/writer ppmFile :append true)]
+        (.write w  (str (int a) " ")))
+      
+      (if (> 2 iterRGB)
+        (recur (inc iterRGB))
         ))
     
     (if (> y iterY)
       (recur (inc iterY))
-      (println "Loaded ppm"))
-    )
-  )
+      (with-open [w (clojure.java.io/writer ppmFile :append true)]
+        (.write w "\n"))
+      )))
 
-
-
-
+                                        ; <------------------------ Line ------------------------>
 
 
 ; A = dy
 ; B = -dx
-(defn drawHelper [image COLOR A B  d x0 y0 x1 y1 octant shift]
- 
-
+(defn drawHelper [image COLOR A B d x0 y0 x1 y1 octant shift]
+ (def COLOR (matrix [x0 y0 x1]))
   (case octant
     1   (setColor image x0 y0 COLOR)
     2      (setColor image y0 x0 COLOR)
@@ -108,9 +113,10 @@
 ;/ 6 | 7 \ 
 
 ; Essentially, I'm using the same algorithm, but just swapping/inverting the x-y values as needed
-(defn drawLine ([image COLOR  x0 y0 x1 y1]
+(defn drawLine
+  ([image COLOR x0 y0 x1 y1]
                 "Draw a line"
- ; (println " x0: " x0 " y0: " y0 " x1: " x1 " y1: " y1)
+                
   (def dy (- y1 y0))
   (def dx (- x1 x0) )
  ; (println "dx: " dx " dy: " dy)              
@@ -154,11 +160,12 @@
    (def A (- y1 y0))
    (def B (- x0 x1))
    (def d (+ (* 2 A) B))
-  ; (println "Start point: " x0 ", " y0 " End point: " x1 ", " y1 " Octant: " octant " shift: " shift)
- 
+    
    (drawHelper image COLOR A B d x0 y0 x1 y1 octant shift)
   ))
 
+
+                                        ; <------------------------ Edge/Transformations ------------------------>
 (defn addEdge
   ([x0 y0 z0 x1 y1 z1]
    (array [[x0 x1][y0 y1][z0 z1][1 1]])
@@ -210,7 +217,7 @@
   (int (mget (select edge x y)))
   )
 (defn readEdge [edge image]
-  (print edge "\n")
+ ; (print edge "\n")
   (loop [ i 0]
     (drawLine
      image
@@ -227,8 +234,7 @@
   image
   )
 
-
-
+                                        ; <------------------------ Hermite/Bezier Curves ------------------------>
 
 (comment
   p0 = initial 
@@ -268,7 +274,7 @@
              ])
     args
     )
-   [1 3]
+   [1 4]
    )
   )
 
@@ -278,18 +284,78 @@
    (println funct)
   ; Time is between 0 and 1
    (def step (/ 1.0 freq))
-   (addCurve funct args step 0 (broadcast (funct args 0) [1 3]))
+   (addCurve funct args step 0 (funct args 0))
    )
   ( [funct args step i edge]
    (print edge "\n")
     (if (> (+ i step) 1)
-    (join-along 0  edge   (funct args i))
+    (transpose (join-along 0  edge   (funct args i)))
      (addCurve funct args step (+ i step)
                  (join-along 0 edge (funct args i) (funct args i)))
      )
    )
   )
+                                        ; <------------------------ 3D Objects ------------------------>
 
+(comment
+  args = [x0 y0 z0 r R]
+  If you want a torus, just make R != 0
+  )
+
+(defn sphere [args t0 t1]
+   (def r (select args 3))
+  (def R (select args 4))
+  ; Just changing the rotation coefficient if it's a torus
+  (if (= R 0)
+    (def a 1)
+    (def a 2)
+    )
+  (matrix [
+           [(+ (select args 0) (* r  (Math/cos (* 2 pi t0) )))]
+           [(+ (select args 1) (* (+ (* r (Math/sin (* 2 pi t0))) R) (Math/cos (* a pi t1))))]
+           [(+ (select args 2) (* (+ (* r (Math/sin (* 2 pi t0))) R) (Math/sin (* a pi t1))))]
+           [1]
+           ])
+  )
+
+(comment
+arguments = [x0 y0 z0 w h d]
+  )
+(defn drawBox [arguments & args]
+  (def x0 (select arguments 0))
+  (def y0 (select arguments 1))
+  (def z0 (select arguments 2))
+  (def w (select arguments 3))
+  (def h (select arguments 4))
+  (def d (select arguments 5))
+  (matrix [
+           [x0  x0  (+ x0 w) (+ x0 w) (+ x0 w)  (+ x0 w)  x0       x0         (+ x0 w) (+ x0 w)  x0       x0        (+ x0 w) (+ x0 w) x0       x0]
+           [y0  y0  (+ y0 h) (+ y0 h)  y0       y0        (+ y0 h) (+ y0 h)   y0       y0        y0       y0        (+ y0 h) (+ y0 h) (+ y0 h) (+ y0 h)]
+           [z0  z0  z0       z0        z0       z0        (+ z0 d) (+ z0 d )  (+ z0 d) (+ z0 d)  (+ z0 d) (+ z0 d)  (+ z0 d) (+ z0 d) z0       z0]
+           [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+           ])
+  )
+
+
+(defn add3D
+  ([funct args freq]
+   (def step (/ 1.0 freq))
+   (add3D (join-along 1 (funct args 0 0) (funct args 0 0)) funct args step step 0)
+   )
+  ([edge funct args step t p]
+   (if (> t 1)
+     (if (> p 1)
+       edge
+       (add3D (join-along 1 edge (funct args 0 (+ step p)) (funct args 0 (+ step p))) funct args step 0 (+ step p))
+       )
+     (add3D (join-along 1 edge (funct args t p) (funct args t p)) funct args step (+ step t) p)
+     )
+   )
+)
+
+
+
+                                        ; <------------------------  Image Creation  ------------------------>
 
 (defn displayImage [filename]
   (programs display)
@@ -299,18 +365,48 @@
 (defn createImage
   []
   (def filename "image6")
+ 
+ (createPPM filename (readEdge
+   (add3D sphere [50 50 50 25 0] 15)
+   (matrix (repeat 300 (repeat 300 DEFAULT_COLOR)))))
+
    
-  (createPPM
-   filename
-   (readEdge
-    (transpose (addCurve bezier (matrix [[0 0 0] [50 100 50] [150 250 7] [100 200 10]]) 25))
-    (matrix (repeat 300 (repeat 300 DEFAULT_COLOR)))
-    )
-   )
  (displayImage filename)
   )
-  
-  
+
+                                        ; <------------------------ Input ------------------------>
+
+(defn getInput [prompt]
+  (println prompt)
+  (read-line))
+
+(defn parseScript [script]
+  (println "first command: "(select (str/split script #"\n") 0))
+  )
+(defn scriptReader
+  ([]
+   (def input (getInput "==>: "))
+   (if (= input "done")
+     (parseScript input)
+     (do
+       (println input)
+       (scriptReader input)
+       )
+   )
+   )
+
+  ( [script]
+   (def input (getInput "==>:  "))
+   (if  (= input "done")
+     (parseScript script)
+     (do
+       (println input)
+       (scriptReader (str script "\n" input))
+       )
+     )
+   )
+  )
+
 
 
 
@@ -322,7 +418,7 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!")
-  (createImage))
+  (println "Hello!")
+  (scriptReader))
 
 
